@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>John's QA Desk</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class' }
+  // Always dark — toggle UI removed.
+  document.documentElement.classList.add('dark')
+</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+  /* Shared accents */
+  .eyebrow { letter-spacing: .12em; }
+
+  /* Light theme */
+  html:not(.dark) body {
+    background: radial-gradient(ellipse at top, #eaf1ff 0%, #f6f8fc 55%) fixed;
+    color: #0f172a;
+  }
+  html:not(.dark) .card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), inset 0 1px 0 #fff;
+  }
+  html:not(.dark) .eyebrow { color: #2563eb; }
+  html:not(.dark) .pill-idle {
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+  }
+  html:not(.dark) .pill-active {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    border: 1px solid #3b82f6;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(59,130,246,.18), 0 4px 14px rgba(59,130,246,.25);
+  }
+  html:not(.dark) .btn-primary {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    border: 1px solid #3b82f6;
+  }
+  html:not(.dark) .btn-primary:hover { filter: brightness(1.05); }
+  html:not(.dark) .btn-ghost {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+  }
+  html:not(.dark) .input,
+  html:not(.dark) select.input {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+  }
+
+  /* Dark theme — sinc-dash reference palette */
+  html.dark body {
+    background: radial-gradient(ellipse at top, #14213d 0%, #050912 55%) fixed;
+    color: #e2e8f0;
+  }
+  html.dark .card {
+    background: linear-gradient(180deg, #0f1a30 0%, #0a1224 100%);
+    border: 1px solid #1e2a44;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  html.dark .eyebrow { color: #5b8def; }
+  html.dark .pill-idle {
+    background: linear-gradient(180deg, #0c1730 0%, #0a1226 100%);
+    border: 1px solid #1e2a44;
+    color: #e2e8f0;
+  }
+  html.dark .pill-active {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    border: 1px solid #3b82f6;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(59,130,246,.25), 0 4px 14px rgba(59,130,246,.25);
+  }
+  html.dark .btn-primary {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    border: 1px solid #3b82f6;
+  }
+  html.dark .btn-primary:hover { filter: brightness(1.08); }
+  html.dark .btn-ghost {
+    background: transparent;
+    border: 1px solid #1e2a44;
+    color: #e2e8f0;
+  }
+  html.dark .input,
+  html.dark select.input {
+    background: #0a1226;
+    border: 1px solid #1e2a44;
+    color: #e2e8f0;
+  }
+
+  /* Due-date chips inherit pill-idle/active; ensure transition is smooth */
+  .dd-chip { transition: background .15s, border-color .15s, color .15s; }
+
+  /* Custom scrollbars — tuned to the dark slate palette. Includes page scrollbar
+     (body, html) plus any inner scroll container. */
+  html.dark, html.dark body, html.dark *::-webkit-scrollbar { }
+  html.dark::-webkit-scrollbar,
+  html.dark body::-webkit-scrollbar,
+  html.dark *::-webkit-scrollbar { width: 10px; height: 10px; }
+  html.dark::-webkit-scrollbar-track,
+  html.dark body::-webkit-scrollbar-track,
+  html.dark *::-webkit-scrollbar-track { background: #050912; }
+  html.dark::-webkit-scrollbar-thumb,
+  html.dark body::-webkit-scrollbar-thumb,
+  html.dark *::-webkit-scrollbar-thumb {
+    background: #1e2a44;
+    border-radius: 5px;
+    border: 2px solid #050912;
+    background-clip: padding-box;
+  }
+  html.dark::-webkit-scrollbar-thumb:hover,
+  html.dark body::-webkit-scrollbar-thumb:hover,
+  html.dark *::-webkit-scrollbar-thumb:hover { background: #3b82f6; background-clip: padding-box; }
+  html.dark, html.dark body, html.dark * { scrollbar-color: #1e2a44 #050912; scrollbar-width: thin; }
+
+  html:not(.dark)::-webkit-scrollbar,
+  html:not(.dark) body::-webkit-scrollbar,
+  html:not(.dark) *::-webkit-scrollbar { width: 10px; height: 10px; }
+  html:not(.dark)::-webkit-scrollbar-track,
+  html:not(.dark) body::-webkit-scrollbar-track,
+  html:not(.dark) *::-webkit-scrollbar-track { background: #f1f5f9; }
+  html:not(.dark)::-webkit-scrollbar-thumb,
+  html:not(.dark) body::-webkit-scrollbar-thumb,
+  html:not(.dark) *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+    border: 2px solid #f1f5f9;
+    background-clip: padding-box;
+  }
+  html:not(.dark)::-webkit-scrollbar-thumb:hover,
+  html:not(.dark) body::-webkit-scrollbar-thumb:hover,
+  html:not(.dark) *::-webkit-scrollbar-thumb:hover { background: #3b82f6; background-clip: padding-box; }
+  html:not(.dark), html:not(.dark) body, html:not(.dark) * { scrollbar-color: #cbd5e1 #f1f5f9; scrollbar-width: thin; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+
+<main class="max-w-7xl mx-auto px-6 py-10">
+
+  <header class="flex items-start justify-between mb-8">
+    <div>
+      <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400">CLAUDE × JOHN — 45 MIN BUILD</div>
+      <h1 class="text-5xl font-extrabold mt-2 dark:text-white">John's QA Desk</h1>
+    </div>
+  </header>
+
+  <!-- Sprint Control -->
+  <section class="card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+      <select id="projectSelect" class="input rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-4 py-2 font-semibold text-lg"></select>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="inline-flex rounded-lg border border-slate-300 dark:border-slate-700 overflow-hidden">
+          <button id="modeSprintBtn" class="btn-ghost px-4 py-2 text-sm font-medium">Sprint</button>
+          <button id="modeDueDateBtn" class="btn-primary px-4 py-2 text-sm font-medium">Due date</button>
+        </div>
+        <button id="refreshBtn" title="Refresh" aria-label="Refresh" class="btn-primary rounded-lg bg-blue-600 hover:bg-blue-700 text-white p-2.5 font-semibold inline-flex items-center justify-center disabled:opacity-60">
+          <svg id="refreshIcon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+            <path d="M21 3v6h-6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="sprintView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400 mb-2">LAST SPRINT</div>
+        <div id="lastSprintPill" class="pill-idle rounded-full px-6 py-4 text-center font-semibold cursor-pointer">—</div>
+      </div>
+      <div>
+        <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400 mb-2">CURRENT SPRINT</div>
+        <div id="currentSprintPill" class="pill-active rounded-full px-6 py-4 text-center font-semibold cursor-pointer">—</div>
+      </div>
+      <div>
+        <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400 mb-2">NEXT SPRINT</div>
+        <div id="nextSprintPill" class="pill-idle rounded-full px-6 py-4 text-center font-semibold cursor-pointer">—</div>
+      </div>
+    </div>
+
+    <div id="dueDateView">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400">YEAR</div>
+        <select id="yearSelect" class="input rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-1.5 text-sm font-medium"></select>
+        <div class="eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400 ml-4">DUE DATES</div>
+        <label class="ml-auto inline-flex items-center gap-2 cursor-pointer select-none">
+          <span class="text-xs font-bold tracking-widest eyebrow text-slate-500 dark:text-blue-400">SHOW ALL TICKETS</span>
+          <span class="relative inline-block w-10 h-6">
+            <input id="showAllToggle" type="checkbox" class="peer sr-only" />
+            <span class="absolute inset-0 rounded-full bg-slate-300 dark:bg-slate-700 peer-checked:bg-blue-600 transition"></span>
+            <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition peer-checked:translate-x-4"></span>
+          </span>
+        </label>
+      </div>
+      <div id="dueDateChips" class="flex flex-wrap gap-2">
+        <span class="text-sm text-slate-500">Loading due dates…</span>
+      </div>
+    </div>
+
+    <p id="statusLine" class="mt-6 text-sm text-slate-600 dark:text-slate-400"></p>
+    <p id="emptyLine" class="mt-2 text-sm text-slate-600 dark:text-slate-400 hidden"></p>
+  </section>
+
+  <!-- Tickets table -->
+  <section class="card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+    <div class="flex items-center justify-end gap-3 mb-4">
+      <button id="bulkAddBtn" disabled class="btn-ghost rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 font-medium disabled:opacity-50">
+        Bulk add to the next sprint
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left eyebrow text-xs font-bold tracking-widest text-slate-500 dark:text-blue-400 border-b border-slate-200 dark:border-slate-800">
+            <th class="py-3 w-8"><input type="checkbox" id="selectAll" /></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="project">PROJECT <span class="sort-ind"></span></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="key">TICKET <span class="sort-ind"></span></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="summary">SUMMARY <span class="sort-ind"></span></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="status">STATUS <span class="sort-ind"></span></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="assignee">ASSIGNEE <span class="sort-ind"></span></th>
+            <th class="py-3 cursor-pointer select-none sort-h" data-sort="priority">PRIORITY <span class="sort-ind"></span></th>
+          </tr>
+        </thead>
+        <tbody id="ticketsBody">
+          <tr><td colspan="7" class="text-center py-10 text-slate-500">Pick a project to begin.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div id="toast" class="fixed bottom-6 left-6 z-[70] hidden bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg border border-slate-700"></div>
+
+</main>
+
+<!-- Status drawer trigger (right edge, vertically centered) -->
+<button id="drawerToggle" title="Open status board (click or shift+scroll)"
+        class="fixed right-0 top-1/2 -translate-y-1/2 z-40 rounded-l-xl px-2 py-4
+               bg-blue-600 hover:bg-blue-700 text-white shadow-lg
+               border border-blue-500/40 transition">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="6" height="16" rx="1"/>
+    <rect x="11" y="4" width="6" height="10" rx="1"/>
+    <rect x="19" y="4" width="2" height="16" rx="1"/>
+  </svg>
+</button>
+
+<!-- Card context menu (right-click on drawer cards) -->
+<div id="cardMenu" class="fixed z-[60] hidden min-w-[200px] rounded-lg border border-slate-700 bg-slate-900 shadow-2xl py-1 text-sm"></div>
+
+<!-- Status board drawer -->
+<div id="drawerBackdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+<aside id="statusDrawer"
+       class="fixed top-0 right-0 h-full w-[90vw] max-w-[1100px] z-50
+              translate-x-full transition-transform duration-200
+              bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col">
+  <header class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+    <div>
+      <div class="eyebrow text-xs font-bold tracking-widest text-blue-400">STATUS BOARD</div>
+      <h2 class="text-xl font-bold text-white" id="drawerScope">Current scope</h2>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="drawerRefresh" title="Refresh" aria-label="Refresh" class="btn-primary rounded-lg bg-blue-600 hover:bg-blue-700 text-white p-2.5 inline-flex items-center justify-center disabled:opacity-60">
+        <svg id="drawerRefreshIcon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+          <path d="M21 3v6h-6"/>
+        </svg>
+      </button>
+      <button id="drawerClose" title="Close" aria-label="Close" class="rounded-lg border border-slate-700 p-2.5 inline-flex items-center justify-center hover:bg-slate-800">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+  <div class="flex-1 overflow-hidden p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" id="drawerColumns"></div>
+</aside>
+
+<script src="/app.js"></script>
+</body>
+</html>
