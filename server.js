@@ -2,10 +2,29 @@ import 'dotenv/config'
 import express from 'express'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readFileSync } from 'node:fs'
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// --- Persistent store -------------------------------------------------------
+// Lightweight JSON file store for readiness verdicts and TC plans.
+// Keyed by issue key within two namespaces: { readiness: {}, tc: {} }
+const DATA_DIR  = path.join(__dirname, 'data')
+const STORE_FILE = path.join(DATA_DIR, 'store.json')
+mkdirSync(DATA_DIR, { recursive: true })
+let STORE = { readiness: {}, tc: {} }
+try { STORE = JSON.parse(readFileSync(STORE_FILE, 'utf8')) } catch { /* first run */ }
+if (!STORE.readiness) STORE.readiness = {}
+if (!STORE.tc) STORE.tc = {}
+
+let _saveTimer = null
+function saveStore() {
+  clearTimeout(_saveTimer)
+  _saveTimer = setTimeout(() => {
+    try { writeFileSync(STORE_FILE, JSON.stringify(STORE, null, 2)) } catch (e) { console.error('store write failed', e) }
+  }, 500)
+}
 
 const {
   JIRA_BASE_URL,
@@ -855,6 +874,21 @@ app.post('/api/bulk-add-to-sprint', async (req, res) => {
   } catch (e) {
     sendError(res, e, req)
   }
+})
+
+// --- Persistent store endpoints ---------------------------------------------
+app.get('/api/store', (_req, res) => res.json(STORE))
+
+app.put('/api/store/readiness/:key', (req, res) => {
+  STORE.readiness[req.params.key] = req.body
+  saveStore()
+  res.json({ ok: true })
+})
+
+app.put('/api/store/tc/:key', (req, res) => {
+  STORE.tc[req.params.key] = req.body
+  saveStore()
+  res.json({ ok: true })
 })
 
 // Unknown API route → JSON 404 (so the client never gets index.html for a typo'd endpoint).

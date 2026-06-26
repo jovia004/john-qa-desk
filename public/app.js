@@ -574,13 +574,16 @@ async function runCardAction(action, key, col, btn) {
 }
 
 // --- Check Readiness -------------------------------------------------------
-// Verdicts live in sessionStorage: survive a normal reload, clear on tab close.
+// Verdicts: sessionStorage for fast sync reads + write-through to server for persistence.
 function readinessKey(key) { return `readiness:${key}` }
 function getReadiness(key) {
   try { return JSON.parse(sessionStorage.getItem(readinessKey(key)) || 'null') } catch { return null }
 }
 function setReadiness(key, verdict) {
   try { sessionStorage.setItem(readinessKey(key), JSON.stringify(verdict)) } catch {}
+  fetch(`/api/store/readiness/${encodeURIComponent(key)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verdict),
+  }).catch(() => {})
 }
 
 async function checkReadiness(key, btn) {
@@ -676,13 +679,17 @@ function readinessBadge(key) {
 }
 
 // --- Prepare TC ------------------------------------------------------------
-// sessionStorage: survives normal reload, clears on tab close.
+// TC plans: sessionStorage for fast sync reads + write-through to server for persistence.
 function tcKey(key) { return `tc:${key}` }
 function getTcStore(key) {
   try { return JSON.parse(sessionStorage.getItem(tcKey(key)) || 'null') } catch { return null }
 }
 function setTcStore(key, store) {
-  try { sessionStorage.setItem(tcKey(key), JSON.stringify(assignCaseIds(store))) } catch {}
+  const normalized = assignCaseIds(store)
+  try { sessionStorage.setItem(tcKey(key), JSON.stringify(normalized)) } catch {}
+  fetch(`/api/store/tc/${encodeURIComponent(key)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(normalized),
+  }).catch(() => {})
 }
 
 // Assign stable ids to every case (needed for review staging + targeted revision).
@@ -1366,10 +1373,22 @@ function bindDrawer() {
   }, { passive: true })
 }
 
+async function hydrateFromServer() {
+  try {
+    const store = await api('/api/store')
+    for (const [k, v] of Object.entries(store.readiness || {})) {
+      try { sessionStorage.setItem(readinessKey(k), JSON.stringify(v)) } catch {}
+    }
+    for (const [k, v] of Object.entries(store.tc || {})) {
+      try { sessionStorage.setItem(tcKey(k), JSON.stringify(v)) } catch {}
+    }
+  } catch { /* server may not be running yet; silent fail is fine */ }
+}
+
 async function init() {
 
-  // Load config
-  const cfg = await api('/api/config')
+  // Load config + hydrate persisted state (readiness verdicts + TC plans) from server.
+  const [cfg] = await Promise.all([api('/api/config'), hydrateFromServer()])
   state.projects = cfg.projects
   _jiraBase = cfg.jiraBase || ''
   const sel = $('projectSelect')
