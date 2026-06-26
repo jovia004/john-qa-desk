@@ -100,6 +100,72 @@
   /* Due-date chips inherit pill-idle/active; ensure transition is smooth */
   .dd-chip { transition: background .15s, border-color .15s, color .15s; }
 
+  /* ── Prepare-TC modal: Test Bridge card styling (scoped) ───────────────── */
+  #tcModalBody { background: #f7f8fa; color: #20242a; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #tcModalBody .case-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  #tcModalBody .case-card {
+    background: #fff; border: 1px solid #e2e7f0; border-radius: 6px; padding: 10px; position: relative; list-style: none;
+  }
+  #tcModalBody .case-card.is-add { border: 3px solid #7b8491; }
+  #tcModalBody .case-card h3 { font-size: 17px; font-weight: 750; line-height: 1.3; margin: 0 0 10px; color: #20242a; }
+  #tcModalBody .case-number-ribbon {
+    background: #63c7ce; clip-path: polygon(0 0, 100% 0, 0 100%); color: #fff;
+    filter: drop-shadow(3px 4px 6px rgba(15,23,42,.14)); height: 46px; width: 46px;
+    left: 0; top: 0; position: absolute; overflow: hidden; pointer-events: none; z-index: 2;
+  }
+  #tcModalBody .case-number-ribbon::before {
+    content: attr(data-label); position: absolute; top: 11px; left: 2px; width: 28px;
+    font-size: 10px; font-weight: 800; letter-spacing: .02em; line-height: 1; text-align: center;
+    text-transform: uppercase; text-shadow: 0 1px 2px rgba(15,23,42,.16);
+    transform: rotate(-45deg); transform-origin: center;
+  }
+  #tcModalBody .case-number-ribbon ~ h3 { padding-left: 36px; padding-top: 8px; }
+  #tcModalBody .case-label-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  #tcModalBody .case-label {
+    align-items: center; border: 0; border-radius: 6px; color: #fff; display: inline-flex;
+    font-size: 13px; font-weight: 800; justify-content: center; line-height: 1;
+    min-height: 28px; min-width: 68px; padding: 7px 11px; text-align: center;
+  }
+  #tcModalBody .case-label.priority { background: #ff8d4a; }
+  #tcModalBody .case-label.type { background: #35acef; }
+  #tcModalBody .case-label.negative { background: #f0a23a; }
+  #tcModalBody .case-label.edge { background: #9b6bdf; }
+  #tcModalBody .case-label.ac { background: #75d65f; }
+  #tcModalBody .case-label.ac-missing { background: #c8ced6; }
+  #tcModalBody .case-section { margin-top: 8px; }
+  #tcModalBody .case-section h4 { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: #5d6673; text-transform: uppercase; letter-spacing: .04em; }
+  #tcModalBody .case-detail-list { display: grid; gap: 6px; margin: 0; padding-left: 20px; color: #20242a; font-size: 14px; }
+  #tcModalBody .case-detail-list p { margin: 0; }
+  #tcModalBody .case-detail-list .expected { color: #445061; font-size: 13px; margin-top: 2px; }
+  /* Light AC coverage + add-form to match the white workspace */
+  #tcModalBody .tc-ac { background: #fff; border: 1px solid #e2e7f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+  #tcModalBody .tc-ac.full { border-color: #75d65f; }
+  #tcModalBody .tc-ac-item { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; padding: 3px 0; }
+  #tcModalBody .tc-input { width: 100%; border: 1px solid #ccd3de; border-radius: 6px; padding: 7px; margin-top: 4px; background: #fff; color: #20242a; }
+  #tcModalBody .tc-addbox { background: #fff; border: 1px solid #e2e7f0; border-radius: 8px; margin-top: 12px; }
+  #tcModalBody .tc-addbox summary { cursor: pointer; padding: 12px 14px; font-weight: 700; color: #20242a; }
+  /* Review: corner status label + action buttons (ported from Test Bridge) */
+  #tcModalBody .case-status-label {
+    position: absolute; right: -1px; top: -1px; min-width: 88px; min-height: 32px;
+    display: flex; align-items: center; justify-content: center; padding: 0 12px;
+    background: #5d6673; color: #fff; font-size: 12px; font-weight: 700; line-height: 1;
+    border-radius: 0 6px 0 6px;
+  }
+  #tcModalBody .case-card.is-approved { border: 3px solid #3dbf72; }
+  #tcModalBody .case-card.is-feedback { border: 3px solid #2563eb; }
+  #tcModalBody .case-card.is-remove { border: 3px solid #c93c37; }
+  #tcModalBody .case-card.is-approved .case-status-label { background: #3dbf72; }
+  #tcModalBody .case-card.is-feedback .case-status-label { background: #2563eb; }
+  #tcModalBody .case-card.is-remove .case-status-label { background: #c93c37; }
+  #tcModalBody .case-card.is-add .case-status-label { background: #7b8491; }
+  #tcModalBody .case-status-label ~ h3 { margin-right: 96px; }
+  #tcModalBody .case-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  #tcModalBody .case-actions button { border: 0; border-radius: 6px; padding: 7px 12px; font-weight: 700; font-size: 13px; cursor: pointer; color: #fff; }
+  #tcModalBody .case-actions button.action-approve { background: #3dbf72; }
+  #tcModalBody .case-actions button.action-feedback { background: #2563eb; }
+  #tcModalBody .case-actions button.action-remove { background: #c93c37; }
+  #tcModalBody .tc-feedback { margin-top: 8px; }
+
   /* Custom scrollbars — tuned to the dark slate palette. Includes page scrollbar
      (body, html) plus any inner scroll container. */
   html.dark, html.dark body, html.dark *::-webkit-scrollbar { }
@@ -255,6 +321,19 @@
 
 <!-- Card context menu (right-click on drawer cards) -->
 <div id="cardMenu" class="fixed z-[60] hidden min-w-[200px] rounded-lg border border-slate-700 bg-slate-900 shadow-2xl py-1 text-sm"></div>
+
+<!-- Readiness verdict modal -->
+<div id="readinessBackdrop" class="fixed inset-0 bg-black/50 z-[65] hidden"></div>
+<div id="readinessModal" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[66] hidden w-[90vw] max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+  <div id="readinessModalBody" class="p-6"></div>
+</div>
+
+<!-- Prepare TC modal -->
+<div id="tcBackdrop" class="fixed inset-0 bg-black/50 z-[65] hidden"></div>
+<div id="tcModal" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[66] hidden flex flex-col w-[92vw] max-w-3xl max-h-[88vh] rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+  <div id="tcModalHeader" class="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0"></div>
+  <div id="tcModalBody" class="flex-1 overflow-y-auto p-6"></div>
+</div>
 
 <!-- Status board drawer -->
 <div id="drawerBackdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
