@@ -586,6 +586,7 @@ function setReadiness(key, verdict) {
   }).catch(() => {})
 }
 
+
 async function checkReadiness(key, btn) {
   setMenuItemBusy(btn, true)
   try {
@@ -670,9 +671,9 @@ function readinessBadge(key) {
   const v = getReadiness(key)
   if (!v) return ''
   const map = {
-    PASS: ['bg-emerald-600/20 text-emerald-300 border-emerald-600/40', '✓ Ready'],
-    FAIL: ['bg-rose-600/20 text-rose-300 border-rose-600/40', '✗ Not ready'],
-    SKIPPED: ['bg-slate-600/20 text-slate-300 border-slate-600/40', 'Skipped'],
+    PASS:    ['bg-emerald-600/20 text-emerald-300 border-emerald-600/40', '✓ Ready'],
+    FAIL:    ['bg-rose-600/20 text-rose-300 border-rose-600/40',          '✗ Not ready'],
+    SKIPPED: ['bg-slate-600/20 text-slate-300 border-slate-600/40',       'Skipped'],
   }
   const [cls, label] = map[v.result] || map.SKIPPED
   return `<span class="ml-2 inline-block rounded-full border px-2 py-0.5 text-[11px] font-medium ${cls}">${label}</span>`
@@ -1382,6 +1383,7 @@ async function hydrateFromServer() {
     for (const [k, v] of Object.entries(store.tc || {})) {
       try { sessionStorage.setItem(tcKey(k), JSON.stringify(v)) } catch {}
     }
+
   } catch { /* server may not be running yet; silent fail is fine */ }
 }
 
