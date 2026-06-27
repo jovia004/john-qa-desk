@@ -876,33 +876,39 @@ function renderTcCard(tc, index) {
 
   const ribbonLabel = tc.testCaseNumber || `TC${index + 1}`
 
-  // Review state → card class + corner status label (CSS already styles these).
-  const reviewClass = tc.review === 'approved' ? 'is-approved'
-    : tc.review === 'feedback' ? 'is-feedback'
-    : tc.review === 'removed' ? 'is-remove'
-    : (tc.status === 'manual' ? 'is-add' : '')
-  const statusText = tc.review === 'approved' ? 'Approved'
-    : tc.review === 'feedback' ? 'Feedback'
-    : tc.review === 'removed' ? 'Remove'
-    : (tc.status === 'manual' ? 'Add' : '')
+  // Card state: execution mode (locked) or review mode (unlocked).
+  const cardClass = tcLocked
+    ? (tc.exec?.result === 'pass' ? 'is-pass' : tc.exec?.result === 'fail' ? 'is-fail' : tc.exec?.result === 'blocked' ? 'is-blocked' : (tc.status === 'manual' ? 'is-add' : ''))
+    : (tc.review === 'approved' ? 'is-approved' : tc.review === 'feedback' ? 'is-feedback' : tc.review === 'removed' ? 'is-remove' : (tc.status === 'manual' ? 'is-add' : ''))
+  const statusText = tcLocked
+    ? (tc.exec?.result === 'pass' ? 'Pass' : tc.exec?.result === 'fail' ? 'Fail' : tc.exec?.result === 'blocked' ? 'Blocked' : '')
+    : (tc.review === 'approved' ? 'Approved' : tc.review === 'feedback' ? 'Feedback' : tc.review === 'removed' ? 'Remove' : (tc.status === 'manual' ? 'Add' : ''))
   const statusLabel = statusText ? `<span class="case-status-label">${statusText}</span>` : ''
 
-  // Review action buttons (hidden once the plan is accepted = locked).
-  const labels = {
-    approve: tc.review === 'approved' ? 'Undo approval' : 'Approve',
-    feedback: tc.review === 'feedback' ? 'Retract feedback' : 'Feedback',
-    remove: tc.review === 'removed' ? 'Restore case' : 'Remove',
+  // Execution buttons (locked) or review buttons (unlocked).
+  let actions
+  if (tcLocked) {
+    actions = `<div class="exec-actions">
+      <button class="action-pass${tc.exec?.result === 'pass' ? ' active' : ''}" data-exec-act="pass" data-tc-id="${tc.id}">✓ Pass</button>
+      <button class="action-fail${tc.exec?.result === 'fail' ? ' active' : ''}" data-exec-act="fail" data-tc-id="${tc.id}">✗ Fail</button>
+      <button class="action-blocked${tc.exec?.result === 'blocked' ? ' active' : ''}" data-exec-act="blocked" data-tc-id="${tc.id}">⊘ Blocked</button>
+    </div>
+    <textarea class="tc-input exec-notes" data-exec-notes="${tc.id}" rows="2" placeholder="Execution notes (optional)">${escapeHtml(tc.exec?.notes || '')}</textarea>`
+  } else {
+    const labels = {
+      approve: tc.review === 'approved' ? 'Undo approval' : 'Approve',
+      feedback: tc.review === 'feedback' ? 'Retract feedback' : 'Feedback',
+      remove: tc.review === 'removed' ? 'Restore case' : 'Remove',
+    }
+    actions = `<div class="case-actions">
+      <button class="action-approve" data-tc-act="approve" data-tc-id="${tc.id}">${labels.approve}</button>
+      <button class="action-feedback" data-tc-act="feedback" data-tc-id="${tc.id}">${labels.feedback}</button>
+      <button class="action-remove" data-tc-act="remove" data-tc-id="${tc.id}">${labels.remove}</button>
+    </div>
+    ${tc.review === 'feedback' ? `<textarea class="tc-input tc-feedback" data-tc-fb="${tc.id}" rows="2" placeholder="What should change in this case?">${escapeHtml(tc.feedback || '')}</textarea>` : ''}`
   }
-  const actions = tcLocked
-    ? ''
-    : `<div class="case-actions">
-        <button class="action-approve" data-tc-act="approve" data-tc-id="${tc.id}">${labels.approve}</button>
-        <button class="action-feedback" data-tc-act="feedback" data-tc-id="${tc.id}">${labels.feedback}</button>
-        <button class="action-remove" data-tc-act="remove" data-tc-id="${tc.id}">${labels.remove}</button>
-      </div>
-      ${tc.review === 'feedback' ? `<textarea class="tc-input tc-feedback" data-tc-fb="${tc.id}" rows="2" placeholder="What should change in this case?">${escapeHtml(tc.feedback || '')}</textarea>` : ''}`
 
-  return `<li class="case-card ${reviewClass}" data-tc-card="${tc.id}">
+  return `<li class="case-card ${cardClass}" data-tc-card="${tc.id}">
     <span class="case-number-ribbon" data-label="${escapeHtml(ribbonLabel)}"></span>
     ${statusLabel}
     <h3>${escapeHtml(tc.title)}</h3>
@@ -953,6 +959,10 @@ function openTcModal(key) {
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         <span>Regenerate</span>
       </button>`}
+      ${tcLocked ? `<button id="tcLogExecution" class="rounded-lg px-3 py-2 text-sm font-semibold inline-flex items-center gap-2" style="background:#22c55e;color:#fff;border:0">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        <span>Log Execution to Jira</span>
+      </button>` : ''}
       <button id="tcDownload" class="btn-primary rounded-lg px-3 py-2 text-sm font-semibold inline-flex items-center gap-2">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
         <span>Download CSV</span>
@@ -968,6 +978,7 @@ function openTcModal(key) {
 
   body.innerHTML =
     banner +
+    (tcLocked ? `<div id="tcExecSummary"></div>` : '') +
     renderAcCoverage(key) +
     `<ul class="case-list" id="tcCardList">${cases.map((tc, i) => renderTcCard(tc, i)).join('') || '<p style="color:#5d6673">No cases generated.</p>'}</ul>` +
     (tcLocked ? '' : `<div id="tcAddSlot"></div><div id="tcActionRow"></div>`)
@@ -976,11 +987,16 @@ function openTcModal(key) {
   $('tcBackdrop').classList.remove('hidden')
   $('tcClose').addEventListener('click', closeTcModal)
   $('tcDownload').addEventListener('click', () => downloadTcCsv(key))
+  const logExecBtn = $('tcLogExecution')
+  if (logExecBtn) logExecBtn.addEventListener('click', () => logExecution(key, logExecBtn))
 
   if (!tcLocked) {
     bindTcReview(key)
     renderTcActionRow(key)
     renderTcAddForm(key)
+  } else {
+    bindTcExecution(key)
+    renderExecutionSummary(key)
   }
 
   const regenBtn = $('tcRegenerate')
@@ -1087,16 +1103,26 @@ function bindTcReview(key) {
 
 // Re-render only the body (cards + coverage + action row), preserving the header/modal.
 function rerenderTcBody(key) {
+  const store = getTcStore(key) || {}
   const cases = allTcCases(key)
-  const cov = renderAcCoverage(key)
-  const banner = '' // not locked while reviewing
-  $('tcModalBody').innerHTML =
-    banner + cov +
-    `<ul class="case-list" id="tcCardList">${cases.map((tc, i) => renderTcCard(tc, i)).join('') || '<p style="color:#5d6673">No cases generated.</p>'}</ul>` +
-    `<div id="tcAddSlot"></div><div id="tcActionRow"></div>`
-  bindTcReview(key)
-  renderTcActionRow(key)
-  renderTcAddForm(key)
+  if (tcLocked) {
+    const banner = `<div style="background:#e7f7ee;border:1px solid #75d65f;border-radius:8px;padding:10px 14px;margin-bottom:12px;color:#1f7a45;font-weight:700">✓ Accepted${store.acceptedBy ? ` by ${escapeHtml(store.acceptedBy)}` : ''}${store.acceptedAt ? ` · ${escapeHtml(store.acceptedAt)}` : ''} — posted to Jira</div>`
+    $('tcModalBody').innerHTML =
+      banner +
+      `<div id="tcExecSummary"></div>` +
+      renderAcCoverage(key) +
+      `<ul class="case-list" id="tcCardList">${cases.map((tc, i) => renderTcCard(tc, i)).join('') || '<p style="color:#5d6673">No cases generated.</p>'}</ul>`
+    bindTcExecution(key)
+    renderExecutionSummary(key)
+  } else {
+    $('tcModalBody').innerHTML =
+      renderAcCoverage(key) +
+      `<ul class="case-list" id="tcCardList">${cases.map((tc, i) => renderTcCard(tc, i)).join('') || '<p style="color:#5d6673">No cases generated.</p>'}</ul>` +
+      `<div id="tcAddSlot"></div><div id="tcActionRow"></div>`
+    bindTcReview(key)
+    renderTcActionRow(key)
+    renderTcAddForm(key)
+  }
 }
 
 // Cases not yet acted on (the dead-end the strict model creates).
@@ -1140,6 +1166,76 @@ function renderTcActionRow(key) {
 
   const btn = $('tcPrimary')
   if (btn && enabled) btn.addEventListener('click', () => acceptReady ? acceptPlan(key, btn) : submitReview(key, btn))
+}
+
+function renderExecutionSummary(key) {
+  const el = $('tcExecSummary')
+  if (!el) return
+  const cases = activeCases(key)
+  if (!cases.length) { el.innerHTML = ''; return }
+  const pass    = cases.filter(c => c.exec?.result === 'pass').length
+  const fail    = cases.filter(c => c.exec?.result === 'fail').length
+  const blocked = cases.filter(c => c.exec?.result === 'blocked').length
+  const pending = cases.length - pass - fail - blocked
+  el.innerHTML = `<div class="exec-summary">
+    <span class="exec-stat pass">✓ ${pass} Passed</span>
+    <span class="exec-stat fail">✗ ${fail} Failed</span>
+    <span class="exec-stat blocked">⊘ ${blocked} Blocked</span>
+    <span class="exec-stat pending">○ ${pending} Pending</span>
+  </div>`
+}
+
+function bindTcExecution(key) {
+  document.querySelectorAll('[data-exec-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.execAct
+      const id = btn.dataset.tcId
+      const store = getTcStore(key); if (!store) return
+      const c = [...(store.generated || []), ...(store.manual || [])].find(x => x.id === id)
+      if (!c) return
+      c.exec = { result: c.exec?.result === act ? null : act, notes: c.exec?.notes || '' }
+      setTcStore(key, store)
+      rerenderTcBody(key)
+    })
+  })
+  document.querySelectorAll('[data-exec-notes]').forEach(ta => {
+    ta.addEventListener('input', () => {
+      const id = ta.dataset.execNotes
+      const store = getTcStore(key); if (!store) return
+      const c = [...(store.generated || []), ...(store.manual || [])].find(x => x.id === id)
+      if (!c) return
+      if (!c.exec) c.exec = { result: null, notes: '' }
+      c.exec.notes = ta.value
+      setTcStore(key, store)
+    })
+  })
+}
+
+async function logExecution(key, btn) {
+  if (tcActionInFlight) return
+  const cases = activeCases(key)
+  if (!cases.some(c => c.exec?.result)) {
+    toast('Run at least one case before logging', 'info')
+    return
+  }
+  if (!confirm(`Post execution results for ${key} to Jira?`)) return
+  tcActionInFlight = true
+  const origText = btn.querySelector('span')?.textContent || 'Log Execution to Jira'
+  btn.disabled = true
+  if (btn.querySelector('span')) btn.querySelector('span').textContent = 'Posting…'
+  try {
+    await api(`/api/ticket/${encodeURIComponent(key)}/log-execution`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cases }),
+    })
+    toast(`${key}: execution log posted to Jira`, 'success')
+  } catch (err) {
+    toast(`Log failed: ${err.message}`, 'error')
+  } finally {
+    tcActionInFlight = false
+    btn.disabled = false
+    if (btn.querySelector('span')) btn.querySelector('span').textContent = origText
+  }
 }
 
 // Submit: regenerate feedback-flagged cases (LLM) + drop removed cases; approvals persist.
@@ -1285,7 +1381,7 @@ function downloadTcCsv(key) {
     (c.steps || []).map((s, n) => `${n + 1}. ${s.action}`).join('\n'),
     ((c.steps || []).map(s => s.expectedResult).filter(Boolean).concat(c.expectedResults || [])).join('\n'),
     c.type || 'Functional',
-    '', // Result — empty, for later execution tracking
+    tc.exec?.result ? tc.exec.result.charAt(0).toUpperCase() + tc.exec.result.slice(1) : '',
   ].map(q).join(','))
   const csv = [columns.map(q).join(','), ...rows].join('\r\n')
 

@@ -731,6 +731,58 @@ expectedResults[], linkedAcceptanceCriteriaIds[] }]}`
   }
 })
 
+function buildExecutionLogAdf({ cases, logger }) {
+  const date = new Date().toISOString().slice(0, 10)
+  const pass    = cases.filter(c => c.exec?.result === 'pass').length
+  const fail    = cases.filter(c => c.exec?.result === 'fail').length
+  const blocked = cases.filter(c => c.exec?.result === 'blocked').length
+  const pending = cases.filter(c => !c.exec?.result).length
+  const resultLabel = { pass: '✅ Pass', fail: '❌ Fail', blocked: '🚫 Blocked' }
+
+  const headerRow = {
+    type: 'tableRow', content: [
+      { type: 'tableHeader', content: [adfPara('TC#', [{ type: 'strong' }])] },
+      { type: 'tableHeader', content: [adfPara('Title', [{ type: 'strong' }])] },
+      { type: 'tableHeader', content: [adfPara('Result', [{ type: 'strong' }])] },
+      { type: 'tableHeader', content: [adfPara('Notes', [{ type: 'strong' }])] },
+    ]
+  }
+  const rows = cases.map((c, i) => ({
+    type: 'tableRow', content: [
+      { type: 'tableCell', content: [adfPara(c.testCaseNumber || `TC${i + 1}`)] },
+      { type: 'tableCell', content: [adfPara(c.title || '')] },
+      { type: 'tableCell', content: [adfPara(resultLabel[c.exec?.result] || '⬜ Pending')] },
+      { type: 'tableCell', content: [adfPara(c.exec?.notes || '')] },
+    ]
+  }))
+
+  return {
+    version: 1, type: 'doc', content: [
+      adfHeading(3, '🧪 Execution Report'),
+      adfPara([`Logged by ${logger || 'unknown'} · ${date}`, `✅ ${pass} Passed  ❌ ${fail} Failed  🚫 ${blocked} Blocked  ⬜ ${pending} Pending`].join('\n'), [{ type: 'em' }]),
+      { type: 'table', content: [headerRow, ...rows] },
+    ]
+  }
+}
+
+// Log execution results to Jira as a comment.
+app.post('/api/ticket/:key/log-execution', async (req, res) => {
+  try {
+    const key = req.params.key
+    const cases = Array.isArray(req.body?.cases) ? req.body.cases : []
+    if (!cases.length) return res.status(400).json({ error: 'No cases provided.' })
+    let logger = ''
+    try { logger = (await jira('/rest/api/3/myself')).displayName || '' } catch {}
+    const adf = buildExecutionLogAdf({ cases, logger })
+    const result = await jira(`/rest/api/3/issue/${encodeURIComponent(key)}/comment`, {
+      method: 'POST', body: JSON.stringify({ body: adf }),
+    })
+    res.json({ ok: true, commentId: String(result.id || '') })
+  } catch (e) {
+    sendError(res, e, req)
+  }
+})
+
 // Accept: post the finalized test plan to the Jira ticket as a structured comment.
 app.post('/api/ticket/:key/comment', async (req, res) => {
   try {
